@@ -4,7 +4,7 @@ from flask import Flask
 # Load config
 flask_config = os.getenv('APP_SETTINGS')
 if flask_config is None:
-    print("- Warning: APP_SETTINGS not found")
+    # print("- Warning: APP_SETTINGS not found")
     flask_config = 'DevelopmentConfig'
 
 print(f"Name: {__name__}")
