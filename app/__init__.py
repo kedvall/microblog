@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
 
 # Load config
 flask_config = os.getenv('APP_CONFIG')
@@ -19,5 +20,9 @@ flask_app.config.from_object('app.config.' + flask_config)
 # Database setup
 db = SQLAlchemy(flask_app)
 migrate = Migrate(flask_app, db)
+
+# Login setup
+login = LoginManager(flask_app)
+login.login_view = 'login'
 
 from app import routes, models
