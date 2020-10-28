@@ -1,5 +1,7 @@
 import os
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 # Load config
 flask_config = os.getenv('APP_CONFIG')
@@ -14,4 +16,8 @@ print(f"Config: {flask_config}")
 flask_app = Flask(__name__)
 flask_app.config.from_object('app.config.' + flask_config)
 
-from app import routes
+# Database setup
+db = SQLAlchemy(flask_app)
+migrate = Migrate(flask_app, db)
+
+from app import routes, models
