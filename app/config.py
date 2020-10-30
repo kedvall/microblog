@@ -20,6 +20,7 @@ class AppConfig(object):
     ADMINS = ['my_application@gmx.com']
     # Application config
     POSTS_PER_PAGE = 5
+    LANGUAGES = ['en', 'es']
 
 
 class ProductionConfig(AppConfig):
