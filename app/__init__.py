@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
+from flask_bootstrap import Bootstrap
 
 # Load config
 flask_config = os.getenv('APP_CONFIG')
@@ -31,6 +32,9 @@ login.login_view = 'login'
 
 # Mail setup
 mail = Mail(flask_app)
+
+# Bootstrap setup
+bootstrap = Bootstrap(flask_app)
 
 # Logging setup
 if not flask_app.debug:

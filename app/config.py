@@ -19,7 +19,7 @@ class AppConfig(object):
     MAIL_PASSWORD = None
     ADMINS = ['my_application@gmx.com']
     # Application config
-    POSTS_PER_PAGE = 25
+    POSTS_PER_PAGE = 5
 
 
 class ProductionConfig(AppConfig):
