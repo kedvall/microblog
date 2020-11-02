@@ -12,7 +12,8 @@ class AppConfig(object):
     CSRF_ENABLED = False
     SECRET_KEY = "MY-SUPER-SECRET-KEY"
     # Database config
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'microblog_app.db')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'microblog_app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Email notification config
     MAIL_SERVER = 'localhost'
@@ -25,7 +26,7 @@ class AppConfig(object):
     POSTS_PER_PAGE = 5
     LANGUAGES = ['en', 'es']
     MS_TRANSLATOR_KEY = '00c0a5eb46d64346a935576109145504'
-    ELASTICSEARCH_URL = 'http://localhost:9200'
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')  # or 'http://localhost:9200'
 
 
 class ProductionConfig(AppConfig):

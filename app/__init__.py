@@ -32,8 +32,8 @@ def create_app(config_class=DevelopmentConfig):
     if flask_config is None:
         flask_config = 'DevelopmentConfig'
 
-    print(f"Name: {__name__}")
-    print(f"Config: {flask_config}")
+    # print(f"Name: {__name__}")
+    # print(f"Config: {flask_config}")
 
     # Create Flask instance
     flask_app = Flask(__name__)
