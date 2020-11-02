@@ -25,6 +25,7 @@ class AppConfig(object):
     POSTS_PER_PAGE = 5
     LANGUAGES = ['en', 'es']
     MS_TRANSLATOR_KEY = '00c0a5eb46d64346a935576109145504'
+    ELASTICSEARCH_URL = 'http://localhost:9200'
 
 
 class ProductionConfig(AppConfig):
