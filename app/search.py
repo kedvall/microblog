@@ -1,4 +1,5 @@
 from flask import current_app
+from elasticsearch.exceptions import ConnectionError, ConnectionTimeout
 
 
 def add_to_index(index, model):
@@ -19,9 +20,13 @@ def remove_from_index(index, model):
 def query_index(index, query, page, per_page):
     if not current_app.elasticsearch:
         return [], 0
-    search = current_app.elasticsearch.search(
-        index=index,
-        body={'query': {'multi_match': {'query': query, 'fields': ['*']}},
-              'from': (page - 1) * per_page, 'size': per_page})
-    ids = [int(hit['_id']) for hit in search['hits']['hits']]
-    return ids, search['hits']['total']['value']
+    try:
+        search = current_app.elasticsearch.search(
+            index=index,
+            body={'query': {'multi_match': {'query': query, 'fields': ['*']}},
+                'from': (page - 1) * per_page, 'size': per_page})
+        ids = [int(hit['_id']) for hit in search['hits']['hits']]
+        return ids, search['hits']['total']['value']
+    except (ConnectionError, ConnectionTimeout):
+        print("Could not connect to Elasticsearch service")
+        return [], 0
