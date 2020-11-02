@@ -1,5 +1,8 @@
 import os
+from dotenv import load_dotenv
+
 basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
 
 
 class AppConfig(object):
@@ -31,7 +34,3 @@ class ProductionConfig(AppConfig):
 class DevelopmentConfig(AppConfig):
     DEVELOPMENT = True
     DEBUG = True
-
-
-class TestingConfig(AppConfig):
-    TESTING = True

@@ -1,7 +1,7 @@
-import os
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
-from flask import Flask, request
+import os
+from flask import Flask, request, current_app
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -9,73 +9,86 @@ from flask_mail import Mail
 from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_babel import Babel, lazy_gettext as _l
+from config import DevelopmentConfig
 
-# Load config
-flask_config = os.getenv('APP_CONFIG')
-if flask_config is None:
-    # print("- Warning: APP_SETTINGS not found")
-    flask_config = 'DevelopmentConfig'
-    # flask_config = 'ProductionConfig'
 
-print(f"Name: {__name__}")
-print(f"Config: {flask_config}")
-
-# Create Flask instance
-flask_app = Flask(__name__)
-flask_app.config.from_object('app.config.' + flask_config)
-
-# Database setup
-db = SQLAlchemy(flask_app)
-migrate = Migrate(flask_app, db)
-
-# Login setup
-login = LoginManager(flask_app)
-login.login_view = 'login'
+db = SQLAlchemy()           # Database setup
+migrate = Migrate()
+login = LoginManager()      # Login setup
+login.login_view = 'auth.login'
 login.login_message = _l('Please log in to access this page.')
+mail = Mail()               # Mail setup
+bootstrap = Bootstrap()     # Bootstrap setup
+moment = Moment()           # Timezone management
+babel = Babel()             # Localization
 
-# Mail setup
-mail = Mail(flask_app)
 
-# Bootstrap setup
-bootstrap = Bootstrap(flask_app)
+def create_app(config_class=DevelopmentConfig):
+    flask_app = Flask(__name__)
 
-# Timezone management
-moment = Moment(flask_app)
+    # Load config
+    flask_config = os.getenv('APP_CONFIG')
+    if flask_config is None:
+        flask_config = 'DevelopmentConfig'
 
-# Localization
-babel = Babel(flask_app)
+    print(f"Name: {__name__}")
+    print(f"Config: {flask_config}")
 
-# Logging setup
-if not flask_app.debug:
-    if flask_app.config['MAIL_SERVER']:
-        auth = None
-        if flask_app.config['MAIL_USERNAME'] or flask_app.config['MAIL_PASSWORD']:
-            auth = (flask_app.config['MAIL_USERNAME'], flask_app.config['MAIL_PASSWORD'])
-        secure = None
-        if flask_app.config['MAIL_USE_TLS']:
-            secure = ()
-        mail_handler = SMTPHandler(
-            mailhost=(flask_app.config['MAIL_SERVER'], flask_app.config['MAIL_PORT']),
-            fromaddr='no-reply@' + flask_app.config['MAIL_SERVER'],
-            toaddrs=flask_app.config['ADMINS'], subject='Microblog Failure',
-            credentials=auth, secure=secure)
-        mail_handler.setLevel(logging.ERROR)
-        flask_app.logger.addHandler(mail_handler)
+    # Create Flask instance
+    flask_app = Flask(__name__)
+    flask_app.config.from_object('config.' + flask_config)
 
-    if not os.path.exists('logs'):
-        os.mkdir('logs')
-    file_handler = RotatingFileHandler('logs/microblog.log', maxBytes=10240, backupCount=10)
-    file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d'))
-    file_handler.setLevel(logging.INFO)
-    flask_app.logger.addHandler(file_handler)
+    db.init_app(flask_app)
+    migrate.init_app(flask_app, db)
+    login.init_app(flask_app)
+    mail.init_app(flask_app)
+    bootstrap.init_app(flask_app)
+    moment.init_app(flask_app)
+    babel.init_app(flask_app)
 
-    flask_app.logger.setLevel(logging.INFO)
-    flask_app.logger.info('Microblog startup')
+    from app.errors import bp as errors_bp
+    flask_app.register_blueprint(errors_bp)
+
+    from app.auth import bp as auth_bp
+    flask_app.register_blueprint(auth_bp, url_prefix='/auth')
+
+    from app.main import bp as main_bp
+    flask_app.register_blueprint(main_bp)
+
+    # Logging setup
+    if not flask_app.debug and not flask_app.testing:
+        if flask_app.config['MAIL_SERVER']:
+            auth = None
+            if flask_app.config['MAIL_USERNAME'] or flask_app.config['MAIL_PASSWORD']:
+                auth = (flask_app.config['MAIL_USERNAME'], flask_app.config['MAIL_PASSWORD'])
+            secure = None
+            if flask_app.config['MAIL_USE_TLS']:
+                secure = ()
+            mail_handler = SMTPHandler(
+                mailhost=(flask_app.config['MAIL_SERVER'], flask_app.config['MAIL_PORT']),
+                fromaddr='no-reply@' + flask_app.config['MAIL_SERVER'],
+                toaddrs=flask_app.config['ADMINS'], subject='Microblog Failure',
+                credentials=auth, secure=secure)
+            mail_handler.setLevel(logging.ERROR)
+            flask_app.logger.addHandler(mail_handler)
+
+        if not os.path.exists('logs'):
+            os.mkdir('logs')
+        file_handler = RotatingFileHandler('logs/microblog.log', maxBytes=10240, backupCount=10)
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d'))
+        file_handler.setLevel(logging.INFO)
+        flask_app.logger.addHandler(file_handler)
+
+        flask_app.logger.setLevel(logging.INFO)
+        flask_app.logger.info('Microblog startup')
+
+    return flask_app
 
 
 @babel.localeselector
 def get_locale():
-    return request.accept_languages.best_match(flask_app.config['LANGUAGES'])
+    return request.accept_languages.best_match(current_app.config['LANGUAGES'])
 
 
-from app import routes, models, errors
+from app import models
