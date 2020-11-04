@@ -1,6 +1,8 @@
 import logging
 from logging.handlers import SMTPHandler, RotatingFileHandler
 import os
+from redis import Redis
+import rq
 from elasticsearch import Elasticsearch
 from flask import Flask, request, current_app
 from flask_sqlalchemy import SQLAlchemy
@@ -25,12 +27,8 @@ babel = Babel()             # Localization
 
 
 def create_app(config_class=DevelopmentConfig):
-    flask_app = Flask(__name__)
-
     # Load config
-    flask_config = os.getenv('APP_CONFIG')
-    if flask_config is None:
-        flask_config = 'DevelopmentConfig'
+    flask_config = os.environ.get('APP_CONFIG') or 'DevelopmentConfig'
 
     # print(f"Name: {__name__}")
     # print(f"Config: {flask_config}")
@@ -49,6 +47,9 @@ def create_app(config_class=DevelopmentConfig):
 
     flask_app.elasticsearch = Elasticsearch(
         [flask_app.config['ELASTICSEARCH_URL']]) if flask_app.config['ELASTICSEARCH_URL'] else None
+
+    flask_app.redis = Redis.from_url(flask_app.config['REDIS_URL'])
+    flask_app.task_queue = rq.Queue('microblog-tasks', connection=flask_app.redis)
 
     from app.errors import bp as errors_bp
     flask_app.register_blueprint(errors_bp)

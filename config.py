@@ -24,7 +24,8 @@ class AppConfig(object):
     POSTS_PER_PAGE = 5
     LANGUAGES = ['en', 'es']
     MS_TRANSLATOR_KEY = '00c0a5eb46d64346a935576109145504'
-    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')  # or 'http://localhost:9200'
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL') or 'http://localhost:9200'
+    REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
 
 
 class ProductionConfig(AppConfig):

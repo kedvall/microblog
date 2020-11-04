@@ -2,19 +2,18 @@ version: "3.8"
 services:
   microblog:
     build: .
-    container_name: microblog_compose
-    image: microblog:compose
+    container_name: microblog
+    image: microblog:latest
     environment:
       - DATABASE_URL=mysql+pymysql://microblog:microblog_pass@dbserver/microblog
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - REDIS_URL=redis://redis-server:6379/0
     ports:
       - '8000:5000'
     links:
       - mysql:dbserver
       - elasticsearch:elasticsearch
-    depends_on:
-      - mysql
-      - elasticsearch
+      - redis:redis-server
   mysql:
     container_name: mysql
     image: mysql/mysql-server:5.7
@@ -31,3 +30,19 @@ services:
     ports:
       - '9200:9200'
       - '9300:9300'
+  redis:
+    container_name: redis
+    image: redis:3-alpine
+    ports:
+      - '6379:6379'
+  microblog-tasks:
+    container_name: rq-worker
+    image: microblog:latest
+    environment:
+      - DATABASE_URL=mysql+pymysql://microblog:microblog_pass@dbserver/microblog
+      - REDIS_URL=redis://redis-server:6379/0
+    links:
+      - mysql:dbserver
+      - redis:redis-server
+    entrypoint: ['rq']
+    command: ["worker", "-u", "redis://redis-server:6379/0", "microblog-tasks"]
