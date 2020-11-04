@@ -35,14 +35,18 @@ services:
     image: redis:3-alpine
     ports:
       - '6379:6379'
-  microblog-tasks:
+  rq-worker:
     container_name: rq-worker
     image: microblog:latest
     environment:
       - DATABASE_URL=mysql+pymysql://microblog:microblog_pass@dbserver/microblog
       - REDIS_URL=redis://redis-server:6379/0
+      - MAIL_SERVER=127.0.0.1
+      - MAIL_PORT=8025
     links:
       - mysql:dbserver
       - redis:redis-server
     entrypoint: ['rq']
     command: ["worker", "-u", "redis://redis-server:6379/0", "microblog-tasks"]
+    depends_on:
+      - microblog

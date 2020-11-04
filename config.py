@@ -14,8 +14,8 @@ class AppConfig(object):
         'sqlite:///' + os.path.join(basedir, 'microblog_app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Email notification config
-    MAIL_SERVER = 'localhost'
-    MAIL_PORT = 8025
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'localhost'
+    MAIL_PORT = os.environ.get('MAIL_PORT') or 8025
     MAIL_USE_TLS = None
     MAIL_USERNAME = None
     MAIL_PASSWORD = None
