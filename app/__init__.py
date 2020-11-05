@@ -60,6 +60,9 @@ def create_app(config_class=DevelopmentConfig):
     from app.main import bp as main_bp
     flask_app.register_blueprint(main_bp)
 
+    from app.api import bp as api_bp
+    flask_app.register_blueprint(api_bp, url_prefix='/api')
+
     # Logging setup
     if not flask_app.debug and not flask_app.testing:
         if flask_app.config['MAIL_SERVER']:
